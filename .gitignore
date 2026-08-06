@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.cache/
+logs/
+config/tavily.conf
+.DS_Store

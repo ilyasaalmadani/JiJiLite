@@ -1,0 +1,5 @@
+#!/bin/zsh
+
+export JIJI_HOME="$HOME/JiJiLite"
+
+python3 "$JIJI_HOME/main.py" "$@"

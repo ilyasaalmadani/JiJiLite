@@ -1,0 +1,22 @@
+{
+  "chat_model": "gemma3:4b",
+  "fast_model": "llama3.2:3b",
+  "web_keywords": [
+    "berita",
+    "hari ini",
+    "terbaru",
+    "update",
+    "politik",
+    "ekonomi",
+    "harga",
+    "saham",
+    "presiden",
+    "menteri",
+    "cuaca",
+    "bitcoin",
+    "emas",
+    "2026",
+    "referensi",
+    "sumber"
+  ]
+}

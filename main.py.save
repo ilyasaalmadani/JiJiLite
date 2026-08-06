@@ -1,0 +1,22 @@
+#!/usr/bin/env python3 print(f"╭─ JiJi Lite 
+v{version} 
+─────────────────────╮") 
+print("│ Status : Ready │") 
+print("╰────────────────────────────────────────╯") 
+print()
+
+if len(sys.argv) > 1: import sys print("Prompt 
+:", " ".join(sys.argv[1:])) else: from pathlib 
+import Path while True:
+        try: ROOT = 
+Path(__file__).resolve().parent q = input("JiJi 
+❯ ") sys.path.insert(0, str(ROOT))  except 
+(EOFError, KeyboardInterrupt):
+            print("\nSampai jumpa.") break from 
+core.router import handle from core.config 
+import CONFIG if q.lower() in 
+("exit","/exit","quit"):
+            break
+version = (ROOT / "version").read_text().strip()
+        handle(q)
+        print()

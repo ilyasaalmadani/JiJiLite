@@ -1,0 +1,100 @@
+#!/bin/zsh
+
+VERSION="0.4.0"
+CHAT_MODEL="gemma3:4b"
+FAST_MODEL="llama3.2:3b"
+THINK_MODEL="gemma3:4b"
+
+if [ "$1" = "--version" ]; then
+  echo "JiJi Lite v$VERSION"
+  exit 0
+fi
+
+if [ "$1" = "--model" ]; then
+  echo "Chat    : $CHAT_MODEL"
+  echo "Cepat   : $FAST_MODEL"
+  echo "Analisis: $THINK_MODEL"
+  exit 0
+fi
+
+MODE="chat"
+case "$1" in
+  --fast) MODE="fast"; shift ;;
+  --think|--code) MODE="think"; shift ;;
+  --chat) shift ;;
+esac
+
+PROMPT="$*"
+if [ -z "$PROMPT" ]; then
+  echo "╭─ JiJi Lite v$VERSION ─────────────────────╮"
+  echo "│ Status : Ready                            │"
+  echo "╰───────────────────────────────────────────╯"
+  echo ""
+  echo "Apa yang ingin Anda lakukan?"
+  echo ""
+  while true; do
+    printf "JiJi ❯ "
+    IFS= read -r INPUT
+    case "$INPUT" in
+      /version)
+        echo "JiJi Lite v$VERSION"
+        ;;
+      /status)
+        echo "Status : Ready"
+        echo "Chat   : $CHAT_MODEL"
+        echo "Fast   : $FAST_MODEL"
+        echo "Web    : Tavily Connected"
+        ;;
+      /model)
+        echo "Chat    : $CHAT_MODEL"
+        echo "Cepat   : $FAST_MODEL"
+        echo "Analisis: $THINK_MODEL"
+        ;;
+      /help)
+        echo "/version  Lihat versi"
+        echo "/status   Lihat status"
+        echo "/model    Lihat model"
+        echo "/clear    Bersihkan layar"
+        echo "/exit     Keluar"
+        ;;
+      /exit|exit|keluar|quit) echo "Sampai jumpa."; exit 0 ;;
+      /clear|clear) clear ;;
+      "") continue ;;
+      *) "$0" "$INPUT"; echo "" ;;
+    esac
+  done
+fi
+
+LOWER=$(printf "%s" "$PROMPT" | tr "[:upper:]" "[:lower:]")
+
+case "$LOWER" in
+  *berita*|*hari\ ini*|*terbaru*|*sekarang*|*sumber*|*referensi*|*2026*|*harga*|*cuaca*|*update*)
+    echo "JiJi Lite v0.4.0 [WEB - Tavily]"
+    python3 "$HOME/JiJiLite/core/web.py" "$PROMPT"
+    exit $?
+    ;;
+esac
+
+
+if [ "$MODE" = "chat" ]; then
+  case "$LOWER" in
+    halo|hai|hi) MODE="fast" ;;
+    *kode*|*coding*|*python*|*script*|*analisis*|*strategi*|*debug*|*error*) MODE="think" ;;
+  esac
+fi
+
+case "$MODE" in
+  fast) MODEL="$FAST_MODEL"; LABEL="FAST" ;;
+  think) MODEL="$THINK_MODEL"; LABEL="ANALISIS" ;;
+  *) MODEL="$CHAT_MODEL"; LABEL="CHAT" ;;
+esac
+
+echo "JiJi Lite v$VERSION [$LABEL - $MODEL]"
+
+SYSTEM="Anda adalah JiJi Lite. Jawab dalam Bahasa Indonesia, singkat, jelas, langsung ke inti, dan jangan tampilkan proses berpikir."
+
+if [ "$MODE" = "think" ]; then
+  ollama run "$MODEL" "/no_think $SYSTEM Pertanyaan: $PROMPT"
+else
+  ollama run "$MODEL" "$SYSTEM Pertanyaan: $PROMPT"
+fi
