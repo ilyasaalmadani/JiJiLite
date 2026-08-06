@@ -13,3 +13,12 @@
 - Deteksi cari, search, web, website, dan internet
 - Pertanyaan identitas otomatis diverifikasi melalui web
 - Prompt anti-halusinasi untuk nama, jabatan, dan biografi
+
+## v0.4.4
+- Conversation memory
+- Context-aware follow-up
+- Smart LOCAL/WEB router
+- Automatic web fallback
+- Reliability and anti-hallucination rules
+- Internal commands restored
+- Deterministic router self-tests
