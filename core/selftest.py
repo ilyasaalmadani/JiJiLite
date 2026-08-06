@@ -1,24 +1,73 @@
 #!/usr/bin/env python3
+
+from core.memory import empty_session
 from core.router import classify, contextualize
 
-def expect(actual, expected, name):
+def expect(actual, expected, label):
     if actual != expected:
-        raise AssertionError(f"{name}: {actual!r} != {expected!r}")
-    print(f"✓ {name}")
+        raise AssertionError(
+            f"{label}: {actual!r} != {expected!r}"
+        )
+    print(f"✓ {label}")
 
-web_session = {
-    "last_query": "Siapakah Ilyas Akbar Almadani?",
-    "last_mode": "WEB",
-}
+web_session = empty_session()
+web_session["last_user_query"] = (
+    "Siapakah Ilyas Akbar Almadani?"
+)
+web_session["last_mode"] = "WEB"
 
-expect(classify("Apa itu demokrasi?"), "LOCAL", "pengetahuan umum lokal")
-expect(classify("berita politik hari ini"), "WEB", "berita ke web")
-expect(classify("siapakah Ilyas Akbar Almadani?"), "WEB", "identitas ke web")
-expect(classify("cari di website"), "WEB", "perintah web")
-expect(classify("kurang akurat", web_session), "WEB", "follow-up memakai mode lama")
+local_session = empty_session()
+local_session["last_user_query"] = (
+    "Jelaskan pengertian demokrasi"
+)
+local_session["last_mode"] = "LOCAL"
 
-rewritten = contextualize("kurang akurat", web_session)
-assert "Ilyas Akbar Almadani" in rewritten
-print("✓ follow-up membawa konteks")
+expect(
+    classify("Apa itu demokrasi?"),
+    "LOCAL",
+    "Pertanyaan umum memakai lokal",
+)
 
-print("\nSemua tes v0.4.4 berhasil.")
+expect(
+    classify("Berita politik hari ini"),
+    "WEB",
+    "Berita memakai web",
+)
+
+expect(
+    classify("Siapakah Juliyatmono?"),
+    "WEB",
+    "Identitas memakai web",
+)
+
+expect(
+    classify("Cari di website"),
+    "WEB",
+    "Instruksi web terdeteksi",
+)
+
+expect(
+    classify("Kurang akurat", web_session),
+    "WEB",
+    "Follow-up web mempertahankan mode",
+)
+
+expect(
+    classify("Jelaskan lagi", local_session),
+    "LOCAL",
+    "Follow-up lokal mempertahankan mode",
+)
+
+rewritten = contextualize(
+    "Kurang akurat",
+    web_session,
+)
+
+if "Ilyas Akbar Almadani" not in rewritten:
+    raise AssertionError(
+        "Contextual follow-up kehilangan topik."
+    )
+
+print("✓ Follow-up membawa topik sebelumnya")
+print()
+print("Semua self-test v0.4.5 berhasil.")

@@ -1,41 +1,63 @@
 #!/usr/bin/env python3
 
+import json
 import shutil
 import subprocess
 from pathlib import Path
 
 ROOT = Path.home() / "JiJiLite"
 
-print("====================================")
-print("      JiJi Lite System Doctor")
-print("====================================")
-
 checks = []
 
-checks.append(("Python", shutil.which("python3") is not None))
-checks.append(("Ollama", shutil.which("ollama") is not None))
-checks.append(("Git", shutil.which("git") is not None))
+def check(name, condition):
+    checks.append((name, bool(condition)))
 
-checks.append(("Version", (ROOT / "version").exists()))
-checks.append(("Router", (ROOT / "core/router.py").exists()))
-checks.append(("Chat", (ROOT / "core/chat.py").exists()))
-checks.append(("Web", (ROOT / "core/web.py").exists()))
+check("Python", shutil.which("python3"))
+check("Ollama", shutil.which("ollama"))
+check("Git", shutil.which("git"))
+check("Version", (ROOT / "version").exists())
+check("Main", (ROOT / "main.py").exists())
+check("Router", (ROOT / "core/router.py").exists())
+check("Chat", (ROOT / "core/chat.py").exists())
+check("Web", (ROOT / "core/web.py").exists())
+check("Memory", (ROOT / "core/memory.py").exists())
+check(
+    "Tavily Config",
+    (ROOT / "config/tavily.conf").exists(),
+)
 
 try:
-    subprocess.run(
+    result = subprocess.run(
         ["ollama", "list"],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
-        check=True
     )
-    checks.append(("Ollama Service", True))
-except:
-    checks.append(("Ollama Service", False))
+    check("Ollama Service", result.returncode == 0)
+except OSError:
+    check("Ollama Service", False)
+
+try:
+    session = ROOT / "memory/session.json"
+    if session.exists():
+        json.loads(session.read_text(encoding="utf-8"))
+    check("Memory Database", True)
+except (json.JSONDecodeError, OSError):
+    check("Memory Database", False)
+
+print("╭─ JiJi Lite System Doctor ──────────────╮")
+for name, status in checks:
+    symbol = "✓" if status else "✗"
+    print(f"│ {symbol} {name:<35}│")
+print("╰────────────────────────────────────────╯")
+
+failed = [name for name, status in checks if not status]
+
+if failed:
+    print()
+    print("System membutuhkan perhatian:")
+    for item in failed:
+        print("-", item)
+    raise SystemExit(1)
 
 print()
-
-for name, ok in checks:
-    print(f"{'✓' if ok else '✗'} {name}")
-
-print()
-print("Doctor selesai.")
+print("✓ System Healthy")

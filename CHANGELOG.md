@@ -22,3 +22,14 @@
 - Reliability and anti-hallucination rules
 - Internal commands restored
 - Deterministic router self-tests
+
+## v0.4.5
+- Indonesian Web Synthesis
+- Multi-source web summarization
+- Stronger anti-hallucination policy
+- Improved contextual memory
+- Fixed recursive follow-up queries
+- Smart local-to-web fallback
+- Expanded internal commands
+- Expanded System Doctor
+- Full router self-test
