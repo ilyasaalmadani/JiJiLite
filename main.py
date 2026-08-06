@@ -12,6 +12,39 @@ from core.memory import clear, load
 from core.router import handle
 
 VERSION = (ROOT / "version").read_text().strip()
+PURPLE = "\033[35m"
+CYAN = "\033[36m"
+GREEN = "\033[32m"
+DIM = "\033[2m"
+RESET = "\033[0m"
+
+def show_welcome():
+    model = CONFIG.get("chat_model", "gemma3:4b")
+    tavily = (
+        "ONLINE"
+        if (ROOT / "config/tavily.conf").exists()
+        else "OFFLINE"
+    )
+
+    print(PURPLE + r"""
+             /\_/\
+            ( •.• )        /^\/^\
+             > ^ <        _|__|  •|
+                          /     \_/ 
+         JiJi Rabbit × Snake Intelligence
+""" + RESET)
+
+    print(PURPLE + f"╭─ JiJi Lite v{VERSION} ─────────────────────────╮" + RESET)
+    print(f"│ {GREEN}● Status{RESET}  : READY                            │")
+    print(f"│ {CYAN}◆ Mode{RESET}    : ACCURACY                         │")
+    print(f"│ ◆ Router  : LOCAL • WEB • VERIFY              │")
+    print(f"│ ◆ Memory  : ACTIVE                            │")
+    print(f"│ ◆ Web     : {tavily:<33}│")
+    print(f"│ ◆ Model   : {model:<33}│")
+    print(PURPLE + "╰───────────────────────────────────────────────╯" + RESET)
+    print()
+    print(DIM + "Ketik /help untuk melihat perintah." + RESET)
+    print()
 
 def show_help():
     print("Perintah JiJi:")
@@ -32,33 +65,22 @@ def run_internal(command):
 
     elif cmd == "/new":
         clear()
-        print("Percakapan baru dimulai.")
+        print("✓ Percakapan baru dimulai.")
 
     elif cmd == "/memory":
         session = load()
-        print(
-            "Topik :",
-            session.get("last_user_query") or "Belum ada",
-        )
-        print(
-            "Mode  :",
-            session.get("last_mode") or "-",
-        )
-        print(
-            "Pesan :",
-            len(session.get("history", [])),
-        )
+        print("Topik :", session.get("last_user_query") or "Belum ada")
+        print("Mode  :", session.get("last_mode") or "-")
+        print("Pesan :", len(session.get("history", [])))
 
     elif cmd == "/status":
         print(f"JiJi Lite v{VERSION}")
-        print(
-            "Chat   :",
-            CONFIG.get("chat_model", "gemma3:4b"),
-        )
-        print("Web    : Tavily + Indonesian Synthesis")
-        print("Memory : Active")
-        print("Router : Smart Fallback")
-        print("Safety : Reliability Layer")
+        print("Status : READY")
+        print("Mode   : ACCURACY")
+        print("Router : LOCAL • WEB • VERIFY")
+        print("Memory : ACTIVE")
+        print("Web    : Tavily")
+        print("Model  :", CONFIG.get("chat_model", "gemma3:4b"))
 
     elif cmd == "/version":
         print(f"JiJi Lite v{VERSION}")
@@ -71,6 +93,7 @@ def run_internal(command):
 
     elif cmd == "/clear":
         print("\033c", end="")
+        show_welcome()
 
     else:
         return False
@@ -86,16 +109,11 @@ if len(sys.argv) > 1:
     process(" ".join(sys.argv[1:]))
     raise SystemExit
 
-print(f"╭─ JiJi Lite v{VERSION} ─────────────────────╮")
-print("│ Status : Ready                            │")
-print("╰───────────────────────────────────────────╯")
-print()
-print("Apa yang ingin Anda lakukan?")
-print()
+show_welcome()
 
 while True:
     try:
-        question = input("JiJi ❯ ").strip()
+        question = input(PURPLE + "JiJi ❯ " + RESET).strip()
     except (EOFError, KeyboardInterrupt):
         print("\nSampai jumpa.")
         break

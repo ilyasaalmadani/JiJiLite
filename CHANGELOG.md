@@ -54,3 +54,10 @@
 - Expanded follow-up detection
 - Quality Gate automated tests
 - Improved legal-status verification
+
+## v0.4.8
+- Futuristic Rabbit and Snake welcome screen
+- Accuracy Mode indicator
+- Router, Memory, Web, and Model status
+- Purple terminal interface
+- Improved /status and /clear commands
