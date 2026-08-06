@@ -61,3 +61,20 @@
 - Router, Memory, Web, and Model status
 - Purple terminal interface
 - Improved /status and /clear commands
+
+## v0.4.8
+- Main model changed to qwen3:4b
+- Fast router model remains llama3.2:3b
+- Fallback model remains gemma3:4b
+- Optimized for Apple M1 with 8 GB unified memory
+
+## v0.4.9
+- Conversation Intelligence
+- Topic tracking
+- Intent detection
+- Contextual query rewriting
+- Short confirmation handling
+- Smart follow-up resolution
+- Clarification mode
+- Structured conversation state
+- Expanded conversation tests

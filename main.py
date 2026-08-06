@@ -69,9 +69,12 @@ def run_internal(command):
 
     elif cmd == "/memory":
         session = load()
-        print("Topik :", session.get("last_user_query") or "Belum ada")
-        print("Mode  :", session.get("last_mode") or "-")
-        print("Pesan :", len(session.get("history", [])))
+        print("Topik    :", session.get("topic") or "Belum ada")
+        print("Subtopik :", session.get("subtopic") or "-")
+        print("Tujuan   :", session.get("goal") or "-")
+        print("Intent   :", session.get("last_intent") or "-")
+        print("Mode     :", session.get("last_mode") or "-")
+        print("Pesan    :", len(session.get("history", [])))
 
     elif cmd == "/status":
         print(f"JiJi Lite v{VERSION}")
