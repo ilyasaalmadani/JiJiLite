@@ -1,0 +1,29 @@
+[
+  {
+    "name": "follow-up lokasi",
+    "turns": [
+      "Di mana Kabupaten Karanganyar?",
+      "Apa saja yang ada di sana?",
+      "Bagaimana wisatanya?"
+    ],
+    "expected_topic": "Kabupaten Karanganyar"
+  },
+  {
+    "name": "follow-up bisnis",
+    "turns": [
+      "Saya ingin membahas bisnis AI",
+      "Apakah worth it?",
+      "Apa risikonya?"
+    ],
+    "expected_topic": "bisnis AI"
+  },
+  {
+    "name": "pergantian topik",
+    "turns": [
+      "Jelaskan Kabupaten Karanganyar",
+      "Sekarang bahas bisnis AI",
+      "Apakah masih menjanjikan?"
+    ],
+    "expected_topic": "bisnis AI"
+  }
+]
