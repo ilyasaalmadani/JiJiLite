@@ -1,32 +1,76 @@
 #!/usr/bin/env python3
 
-import urllib.request
+import subprocess
+import sys
 from pathlib import Path
 
 ROOT = Path.home() / "JiJiLite"
+VERSION_FILE = ROOT / "version"
+BACKUP = ROOT / "core" / "backup.sh"
 
-LOCAL = (ROOT / "version").read_text().strip()
+def run(command, capture=False):
+    result = subprocess.run(
+        command,
+        cwd=ROOT,
+        text=True,
+        capture_output=capture
+    )
+    if result.returncode != 0:
+        if capture:
+            print(result.stderr.strip())
+        sys.exit(result.returncode)
+    return result.stdout.strip() if capture else ""
 
-URL = "https://raw.githubusercontent.com/ilyasaalmadani/JiJiLite/main/version"
+local_version = VERSION_FILE.read_text().strip()
 
-print("====================================")
-print("      JiJi Lite Updater")
-print("====================================")
+print("╭─ JiJi Lite Update ─────────────────────╮")
+print(f"│ Current : v{local_version:<27}│")
+print("╰────────────────────────────────────────╯")
 print()
+print("Checking GitHub...")
 
-print("Current :", LOCAL)
+run(["git", "fetch", "origin", "main"])
 
-try:
-    REMOTE = urllib.request.urlopen(URL, timeout=10).read().decode().strip()
-    print("Latest  :", REMOTE)
+remote_version = run(
+    ["git", "show", "origin/main:version"],
+    capture=True
+).strip()
 
-    if LOCAL == REMOTE:
-        print()
-        print("✓ JiJi Lite sudah versi terbaru.")
-    else:
-        print()
-        print("↑ Update tersedia.")
-except Exception as e:
+print(f"Latest  : v{remote_version}")
+
+local_commit = run(["git", "rev-parse", "HEAD"], capture=True)
+remote_commit = run(["git", "rev-parse", "origin/main"], capture=True)
+
+if local_commit == remote_commit:
     print()
-    print("Tidak dapat mengecek update.")
-    print(e)
+    print("✓ JiJi Lite sudah versi terbaru.")
+    sys.exit(0)
+
+changes = run(["git", "status", "--porcelain"], capture=True)
+
+if changes:
+    print()
+    print("Update dibatalkan: ada perubahan lokal yang belum dipublikasikan.")
+    print("Jalankan: jiji publish")
+    sys.exit(1)
+
+print()
+print("Creating backup...")
+
+if BACKUP.exists():
+    run([str(BACKUP)])
+
+print()
+print("Installing update...")
+
+run(["git", "pull", "--ff-only", "origin", "main"])
+
+installer = ROOT / "install.sh"
+if installer.exists():
+    run([str(installer)])
+
+new_version = VERSION_FILE.read_text().strip()
+
+print()
+print(f"✓ Update selesai: v{local_version} → v{new_version}")
+print("Jalankan kembali JiJi Lite.")

@@ -18,7 +18,7 @@ if cmd == "doctor":
     subprocess.run(["python3", str(ROOT/"core/doctor.py")])
 
 elif cmd == "update":
-    subprocess.run([str(ROOT/"core/update.sh")])
+    subprocess.run(["python3", str(ROOT/"core/update.py")])
 
 elif cmd == "version":
     print((ROOT/"version").read_text().strip())
