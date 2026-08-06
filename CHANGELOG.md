@@ -33,3 +33,14 @@
 - Expanded internal commands
 - Expanded System Doctor
 - Full router self-test
+
+## v0.4.6
+- Safe self-update with automatic rollback
+- Memory and runtime files excluded from Git
+- Memory size limiting
+- Source deduplication
+- Source-quality ordering
+- Prompt-injection protection for web content
+- Ollama synthesis timeout
+- Stronger Tavily network errors
+- Expanded deterministic self-tests

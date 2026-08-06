@@ -4,3 +4,7 @@ __pycache__/
 logs/
 config/tavily.conf
 .DS_Store
+memory/
+cache/
+backups/
+releases/

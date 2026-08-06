@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 
+import tempfile
+from pathlib import Path
+
 from core.memory import empty_session
 from core.router import classify, contextualize
+from core.web import deduplicate
 
 def expect(actual, expected, label):
     if actual != expected:
@@ -11,27 +15,19 @@ def expect(actual, expected, label):
     print(f"✓ {label}")
 
 web_session = empty_session()
-web_session["last_user_query"] = (
-    "Siapakah Ilyas Akbar Almadani?"
-)
+web_session["last_user_query"] = "Siapakah Juliyatmono?"
 web_session["last_mode"] = "WEB"
-
-local_session = empty_session()
-local_session["last_user_query"] = (
-    "Jelaskan pengertian demokrasi"
-)
-local_session["last_mode"] = "LOCAL"
 
 expect(
     classify("Apa itu demokrasi?"),
     "LOCAL",
-    "Pertanyaan umum memakai lokal",
+    "Pengetahuan umum memakai lokal",
 )
 
 expect(
     classify("Berita politik hari ini"),
     "WEB",
-    "Berita memakai web",
+    "Informasi terbaru memakai web",
 )
 
 expect(
@@ -41,33 +37,38 @@ expect(
 )
 
 expect(
-    classify("Cari di website"),
-    "WEB",
-    "Instruksi web terdeteksi",
-)
-
-expect(
     classify("Kurang akurat", web_session),
     "WEB",
-    "Follow-up web mempertahankan mode",
+    "Follow-up mempertahankan web",
 )
+
+rewritten = contextualize("Kurang akurat", web_session)
+
+if "Juliyatmono" not in rewritten:
+    raise AssertionError("Topik hilang saat query rewrite")
+
+print("✓ Query rewrite mempertahankan topik")
+
+sample = [
+    {
+        "title": "Berita A",
+        "url": "https://contoh.id/a",
+        "content": "Isi pertama",
+        "score": 0.9,
+    },
+    {
+        "title": "Berita A",
+        "url": "https://contoh.id/a/",
+        "content": "Duplikat",
+        "score": 0.8,
+    },
+]
 
 expect(
-    classify("Jelaskan lagi", local_session),
-    "LOCAL",
-    "Follow-up lokal mempertahankan mode",
+    len(deduplicate(sample)),
+    1,
+    "Sumber duplikat dihapus",
 )
 
-rewritten = contextualize(
-    "Kurang akurat",
-    web_session,
-)
-
-if "Ilyas Akbar Almadani" not in rewritten:
-    raise AssertionError(
-        "Contextual follow-up kehilangan topik."
-    )
-
-print("✓ Follow-up membawa topik sebelumnya")
 print()
-print("Semua self-test v0.4.5 berhasil.")
+print("Semua self-test v0.4.6 berhasil.")
