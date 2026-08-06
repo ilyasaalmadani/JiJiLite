@@ -35,6 +35,12 @@ FOLLOW_UP_TERMS = (
     "jelaskan lagi",
     "apa sumbernya",
     "dari mana sumbernya",
+    "yakin",
+    "masa",
+    "benarkah",
+    "kok begitu",
+    "buktinya",
+    "mana buktinya",
 )
 
 CURRENT_FACT_TERMS = (

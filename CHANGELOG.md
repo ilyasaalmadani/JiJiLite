@@ -44,3 +44,13 @@
 - Ollama synthesis timeout
 - Stronger Tavily network errors
 - Expanded deterministic self-tests
+
+## v0.4.7
+- Source quality scoring
+- Trusted-domain prioritization
+- Evidence confidence levels
+- Two-stage web answer verification
+- Stronger factual consistency checks
+- Expanded follow-up detection
+- Quality Gate automated tests
+- Improved legal-status verification

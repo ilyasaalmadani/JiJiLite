@@ -21,6 +21,8 @@ check("Router", (ROOT / "core/router.py").exists())
 check("Chat", (ROOT / "core/chat.py").exists())
 check("Web", (ROOT / "core/web.py").exists())
 check("Memory", (ROOT / "core/memory.py").exists())
+check("Source Quality", (ROOT / "core/source_quality.py").exists())
+check("Quality Test", (ROOT / "core/quality_test.py").exists())
 check(
     "Tavily Config",
     (ROOT / "config/tavily.conf").exists(),
