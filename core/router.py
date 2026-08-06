@@ -1,201 +1,212 @@
-from core.chat import FALLBACK_TOKEN, ask_local
-from core.conversation import (
-    build_effective_query,
-    is_confirmation,
-    is_correction,
-    is_follow_up,
-    needs_clarification,
-    update_state,
-)
-from core.memory import load, remember
+from core.chat import WEB_NEEDED, ask_local
+from core.hallucination_guard import assess_local_answer
+from core.memory import empty_session, load, remember
+from core.output_cleaner import clean_output
+from core.plan_guard import guard_plan
+from core.planner import plan
+from core.policy_engine import evaluate
+from core.turn_guard import is_stale_plan
 from core.web import search
 
-WEB_TERMS = (
-    "berita",
-    "hari ini",
-    "terbaru",
-    "sekarang",
-    "terkini",
-    "update",
-    "cari",
-    "search",
-    "sesrch",
-    "web",
-    "website",
-    "internet",
-    "online",
-    "referensi",
-    "sumber",
-    "harga",
-    "saham",
-    "cuaca",
-    "gempa",
-    "presiden",
-    "menteri",
-    "gubernur",
-    "bupati",
-    "wali kota",
-    "pemilu",
-    "pilkada",
-    "2025",
-    "2026",
-)
 
-IDENTITY_PREFIXES = (
-    "siapa ",
-    "siapakah ",
-    "siapa itu ",
-    "siapakah itu ",
-    "profil ",
-    "biodata ",
-)
+FAST_RESPONSES = {
+    "halo": "Halo! Ada yang bisa saya bantu?",
+    "hai": "Hai! Ada yang ingin Anda bahas?",
+    "hi": "Halo! Ada yang bisa saya bantu?",
+    "hello": "Halo! Ada yang bisa saya bantu?",
+    "terima kasih": "Sama-sama.",
+    "makasih": "Sama-sama.",
+}
 
-def normalize(text):
-    return " ".join(text.lower().strip().split())
 
-def classify(prompt, session=None):
-    session = session or {}
-    text = normalize(prompt)
-
-    if is_correction(prompt):
-        return "WEB"
-
-    if is_follow_up(prompt) and session.get("last_mode") == "WEB":
-        return "WEB"
-
-    if text.startswith(IDENTITY_PREFIXES):
-        return "WEB"
-
-    if any(term in text for term in WEB_TERMS):
-        return "WEB"
-
-    return "LOCAL"
-
-def clarification_message(prompt, session):
-    topic = session.get("topic", "")
-
-    if is_confirmation(prompt) and not topic:
-        return (
-            "Saya belum memiliki topik yang cukup jelas. "
-            "Silakan sebutkan topik yang ingin Anda lanjutkan."
-        )
-
-    return (
-        "Topiknya masih cukup luas. Anda ingin membahas "
-        "pengertian, peluang, modal, risiko, strategi, "
-        "atau contoh penerapannya?"
+def normalize(value):
+    return " ".join(
+        str(value or "").lower().strip().split()
     )
 
-def answer_web(
-    prompt,
-    effective_query,
-    state,
-):
-    print("🌐 Web Search\n")
+
+def apply_pipeline(user_message, session):
+    cognitive_plan = plan(user_message, session)
+    cognitive_plan = guard_plan(
+        cognitive_plan,
+        session,
+        user_message,
+    )
+
+    # Cegah memory lama mengambil alih pertanyaan baru.
+    if is_stale_plan(user_message, cognitive_plan):
+        clean_session = empty_session()
+
+        cognitive_plan = plan(
+            user_message,
+            clean_session,
+        )
+
+        cognitive_plan = guard_plan(
+            cognitive_plan,
+            clean_session,
+            user_message,
+        )
+
+        cognitive_plan["intent"] = (
+            cognitive_plan.get("intent")
+            or "NEW_TOPIC"
+        )
+
+    policy = evaluate(cognitive_plan, session)
+
+    cognitive_plan["route"] = policy.route
+    cognitive_plan["resolved_query"] = (
+        policy.resolved_query
+        or cognitive_plan.get("resolved_query")
+        or user_message
+    )
+    cognitive_plan["topic"] = (
+        policy.topic
+        or cognitive_plan.get("topic", "")
+    )
+    cognitive_plan["canonical_topic"] = (
+        policy.canonical_topic
+        or cognitive_plan.get("canonical_topic", "")
+    )
+    cognitive_plan["entities"] = (
+        policy.entities
+        or cognitive_plan.get("entities", [])
+    )
+    cognitive_plan["intent"] = (
+        policy.intent
+        or cognitive_plan.get("intent", "ASK")
+    )
+    cognitive_plan["confidence"] = policy.confidence
+
+    if policy.route == "CLARIFY":
+        cognitive_plan["need_clarification"] = True
+        cognitive_plan["clarification_question"] = (
+            policy.clarification
+        )
+
+    return cognitive_plan
+
+
+def execute_web(user_message, cognitive_plan):
+    print("🌐 Web Search")
+    print(
+        "🧭 Topik:",
+        cognitive_plan.get("canonical_topic")
+        or cognitive_plan.get("topic")
+        or "-",
+    )
+    print()
 
     try:
-        answer, _ = search(effective_query)
-        mode = "WEB"
+        answer, _ = search(
+            cognitive_plan["resolved_query"]
+        )
+        answer = clean_output(answer)
+        route = "WEB"
 
     except Exception as error:
         answer = (
-            "Saya belum dapat melakukan verifikasi web. "
+            "Verifikasi web belum berhasil. "
             f"Detail: {error}"
         )
-        mode = "ERROR"
+        route = "ERROR"
 
     print(answer)
 
     remember(
-        prompt,
+        user_message,
         answer,
-        mode,
-        effective_query,
-        topic=state["topic"],
-        subtopic=state["subtopic"],
-        goal=state["goal"],
-        intent=state["intent"],
+        route,
+        cognitive_plan,
     )
 
     return answer
 
-def handle(prompt):
+
+def handle(user_message):
+    text = normalize(user_message)
+
+    if text in FAST_RESPONSES:
+        answer = FAST_RESPONSES[text]
+        print("⚡ Fast Chat\n")
+        print(answer)
+        return answer
+
     session = load()
-    state = update_state(prompt, session)
+    cognitive_plan = apply_pipeline(
+        user_message,
+        session,
+    )
 
-    session_with_state = {
-        **session,
-        **state,
-    }
-
-    if needs_clarification(prompt, session_with_state):
-        answer = clarification_message(
-            prompt,
-            session_with_state,
+    if cognitive_plan.get("need_clarification"):
+        answer = (
+            cognitive_plan.get("clarification_question")
+            or "Mohon jelaskan maksud Anda sedikit lebih spesifik."
         )
 
         print("🧭 Klarifikasi\n")
         print(answer)
 
         remember(
-            prompt,
+            user_message,
             answer,
             "CLARIFY",
-            prompt,
-            topic=state["topic"],
-            subtopic=state["subtopic"],
-            goal=state["goal"],
-            intent=state["intent"],
+            cognitive_plan,
         )
-
         return answer
 
-    effective_query = build_effective_query(
-        prompt,
-        session_with_state,
-    )
-
-    mode = classify(
-        effective_query,
-        session_with_state,
-    )
-
-    if mode == "WEB":
-        return answer_web(
-            prompt,
-            effective_query,
-            state,
+    if cognitive_plan["route"] in {"WEB", "VERIFY"}:
+        return execute_web(
+            user_message,
+            cognitive_plan,
         )
 
     answer = ask_local(
-        effective_query,
-        session.get("history", []),
+        cognitive_plan["resolved_query"],
+        session,
+    )
+    answer = clean_output(answer)
+
+    if WEB_NEEDED.lower() in answer.lower():
+        cognitive_plan["route"] = "WEB"
+        return execute_web(
+            user_message,
+            cognitive_plan,
+        )
+
+    guard = assess_local_answer(
+        cognitive_plan["resolved_query"],
+        answer,
+        cognitive_plan,
     )
 
-    if FALLBACK_TOKEN.lower() in answer.lower():
+    if not guard.safe and guard.action == "WEB":
         print(
-            "🌐 Pengetahuan lokal belum cukup. "
-            "Melakukan verifikasi web...\n"
+            "🌐 Jawaban lokal perlu diverifikasi. "
+            "Mencari sumber web...\n"
+        )
+        cognitive_plan["route"] = "WEB"
+        return execute_web(
+            user_message,
+            cognitive_plan,
         )
 
-        return answer_web(
-            prompt,
-            effective_query,
-            state,
-        )
-
-    print("💬 Chat\n")
+    print("💬 Chat")
+    print(
+        "🧭 Topik:",
+        cognitive_plan.get("canonical_topic")
+        or cognitive_plan.get("topic")
+        or "-",
+    )
+    print()
     print(answer)
 
     remember(
-        prompt,
+        user_message,
         answer,
         "LOCAL",
-        effective_query,
-        topic=state["topic"],
-        subtopic=state["subtopic"],
-        goal=state["goal"],
-        intent=state["intent"],
+        cognitive_plan,
     )
 
     return answer
