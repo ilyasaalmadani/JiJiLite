@@ -78,3 +78,72 @@
 - Clarification mode
 - Structured conversation state
 - Expanded conversation tests
+
+## v0.5.1
+- Semantic Conversation Core
+- AI-based context resolution
+- Semantic LOCAL, WEB, VERIFY, and CLARIFY routing
+- Pronoun and reference resolution
+- Structured Memory v3
+- Topic, entity, intent, and goal tracking
+- Standalone contextual query generation
+- Ollama native HTTP client
+- Model keep-alive optimization
+- Strict resolver JSON validation
+- Safe semantic fallback
+- Expanded Semantic Core tests
+- Updated terminal status interface
+
+## v0.5.2
+- Cognitive Conversation Core
+- Full-context LLM planner
+- Semantic reference resolution
+- Typo-tolerant contextual interpretation
+- Canonical topic correction
+- Structured Memory v4
+- Intent, goal, entity, and topic tracking
+- Independent resolved-query generation
+- Meaning-based LOCAL, WEB, VERIFY, and CLARIFY decisions
+- Removal of keyword-based routing as the primary engine
+- Safe planner validation and fallback
+- Cognitive Core automated tests
+
+## v0.5.3
+- Cognitive Memory v5
+- Automatic conversation-state summaries
+- Topic generation and topic-switch isolation
+- Planner response cache
+- Planner fallback model
+- Low-confidence clarification gate
+- Planner error logging
+- /forget command
+- Cache and context reset
+- Recovery automated tests
+
+## v0.5.4
+- Planner Guard validation layer
+- Canonical entity protection
+- Generic label rejection
+- Indonesian planner-output enforcement
+- Entity recovery from resolved queries
+- Previous valid topic preservation
+- Low-confidence clarification gate
+- Planner regression tests
+
+## v0.5.5
+- Conversation Quality Foundation
+- Conversation Policy Engine
+- Confidence Engine
+- Hallucination Guard
+- Local factual-risk detection
+- Automatic LOCAL-to-WEB verification
+- HTML and broken-markup cleaning
+- Cleaner web source snippets
+- Regression and quality tests
+
+## v0.5.6
+- Simplified Fast Cognitive Router
+- Direct local path for clear standalone questions
+- Planner only for contextual or ambiguous follow-ups
+- Direct web path for current factual queries
+- Reduced latency and clarification errors
