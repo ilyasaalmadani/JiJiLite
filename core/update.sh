@@ -1,9 +1,22 @@
 #!/bin/zsh
 
-VERSION=$(cat "$HOME/JiJiLite/version")
+ROOT="$HOME/JiJiLite"
 
-echo "JiJi Lite"
+VERSION=$(cat "$ROOT/version")
+
+clear
+
+echo "===================================="
+echo "        JiJi Lite Update"
+echo "===================================="
 echo
 echo "Current Version : $VERSION"
 echo
-echo "Update Engine belum dikonfigurasi."
+echo "Checking for updates..."
+sleep 1
+echo
+echo "Update server belum dikonfigurasi."
+echo
+echo "Gunakan GitHub Repository sebagai sumber update."
+echo
+echo "Selesai."
